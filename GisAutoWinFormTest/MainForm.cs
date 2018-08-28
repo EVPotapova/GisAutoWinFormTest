@@ -55,15 +55,12 @@ namespace GisAutoWinFormTest
         {
             ResetProgressBarPosition();
         }
-        
+
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             //Reorder credentials
             //Если мы не попадаем в это событие, значит приложение завершилось некорректно и делать перестановку не нужно
-            var logPass = Properties.Settings.Default.CredentialsArray[0];
-            Properties.Settings.Default.CredentialsArray.RemoveAt(0);
-            Properties.Settings.Default.CredentialsArray.Add(logPass);
-            Properties.Settings.Default.Save();
+
         }
 
         #endregion
@@ -78,6 +75,7 @@ namespace GisAutoWinFormTest
 
         private bool LogIn()
         {
+            string logPass = null;
             try
             {
                 //Make sure that credentials are correct
@@ -85,7 +83,9 @@ namespace GisAutoWinFormTest
                 {
                     return false;
                 }
-                var settings = Properties.Settings.Default.CredentialsArray[0].Split(';');
+
+                logPass = Properties.Settings.Default.CredentialsArray[0];
+                var settings = logPass.Split(';');
                 if (settings.Length < 2)
                 {
                     return false;
@@ -111,6 +111,21 @@ namespace GisAutoWinFormTest
                 return false;
             }
 
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(logPass) && Properties.Settings.Default.CredentialsArray.Count > 1)
+                {
+                    //После каждого успешного логина сменить очередность
+                    //Не имеет смысла если credentials одни
+                    Properties.Settings.Default.CredentialsArray.RemoveAt(0);
+                    Properties.Settings.Default.CredentialsArray.Add(logPass);
+                    Properties.Settings.Default.Save();
+                }
+            }
+            catch (Exception)
+            {
+                //TODO: Log
+            }
             return true;
         }
 

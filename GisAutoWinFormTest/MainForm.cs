@@ -18,30 +18,28 @@ namespace GisAutoWinFormTest
         }
 
         #region Events
+
         private void PeugeotWB_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-
-
             if (PeugeotWB.Url.AbsoluteUri.Contains("login"))
             {
                 if (!LogIn())
                 {
-                    MessageBox.Show("Ошибка при попытке подключения к каталогу. Пожалуйста, обратитесь к администратору.","Ошибка", MessageBoxButtons.OK);
+                    MessageBox.Show("Ошибка при попытке подключения к каталогу. Пожалуйста, обратитесь к администратору.", "Ошибка", MessageBoxButtons.OK);
                     Application.Exit();
-                    
                 }
-                //TODO: Если сеанс закончился
             }
             else
             {
-                //TODO: Загруженность обработка полосы загрузки?
-                //TODO: Первый вход?
-                //TODO: Изменить язык при ПЕРВОМ входе
-                //CodeLanguePaysOI = ru_RU
-                var lng = PeugeotWB.Document.GetElementById("ru_UA");
-                if (lng != null)
+                var lg = PeugeotWB.Document.GetElementById("libelleflag");
+                if (lg != null && !lg.InnerText.Contains("Россия"))
                 {
-                    lng.InvokeMember("click");
+                    //ru_RU
+                    var lng = PeugeotWB.Document.GetElementById("ru_RU");
+                    if (lng != null)
+                    {
+                        lng.InvokeMember("click");
+                    }
                 }
                 PeugeotWB.Visible = true;
                 LoadPB.Visible = false;
@@ -53,10 +51,21 @@ namespace GisAutoWinFormTest
 
         }
 
-        private void MainForm_SizeChanged(object sender, System.EventArgs e)
+        private void MainForm_SizeChanged(object sender, EventArgs e)
         {
             ResetProgressBarPosition();
         }
+        
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            //Reorder credentials
+            //Если мы не попадаем в это событие, значит приложение завершилось некорректно и делать перестановку не нужно
+            var logPass = Properties.Settings.Default.CredentialsArray[0];
+            Properties.Settings.Default.CredentialsArray.RemoveAt(0);
+            Properties.Settings.Default.CredentialsArray.Add(logPass);
+            Properties.Settings.Default.Save();
+        }
+
         #endregion
 
         #region Methods
@@ -71,18 +80,22 @@ namespace GisAutoWinFormTest
         {
             try
             {
-                //TODO: Make sure that credentials are correct
-                var logPass = Properties.Settings.Default.CredentialsArray[0];
-                Properties.Settings.Default.CredentialsArray.RemoveAt(0);
-                Properties.Settings.Default.Save();
-
+                //Make sure that credentials are correct
+                if (Properties.Settings.Default.CredentialsArray.Count < 1)
+                {
+                    return false;
+                }
+                var settings = Properties.Settings.Default.CredentialsArray[0].Split(';');
+                if (settings.Length < 2)
+                {
+                    return false;
+                }
 
                 var username = PeugeotWB.Document.GetElementById("username");
                 var pass = PeugeotWB.Document.GetElementById("password");
                 var btn = PeugeotWB.Document.GetElementById("btsubmit");
                 if (username != null && pass != null && btn != null)
                 {
-                    var settings = logPass.Split(';');
                     username.InnerText = settings[0];
                     pass.InnerText = settings[1];
                     btn.InvokeMember("click");
@@ -91,10 +104,8 @@ namespace GisAutoWinFormTest
                 {
                     return false;
                 }
-                Properties.Settings.Default.CredentialsArray.Add(logPass);
-                Properties.Settings.Default.Save();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //TODO: Log
                 return false;
@@ -111,5 +122,6 @@ namespace GisAutoWinFormTest
         }
 
         #endregion
+
     }
 }

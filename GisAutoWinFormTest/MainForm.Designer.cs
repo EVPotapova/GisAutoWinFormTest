@@ -62,6 +62,7 @@
             this.Controls.Add(this.PeugeotWB);
             this.Name = "MainForm";
             this.Text = "Peugeot Web Catalogue";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.SizeChanged += new System.EventHandler(this.MainForm_SizeChanged);
             this.ResumeLayout(false);
 

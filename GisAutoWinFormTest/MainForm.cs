@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
+//Настройки скрыты от пользователя (AppData)
+//TODO: не писать пароли явно
+using AppSettings = GisAutoWinFormTest.Properties.Settings;
 
 namespace GisAutoWinFormTest
 {
@@ -56,13 +59,6 @@ namespace GisAutoWinFormTest
             ResetProgressBarPosition();
         }
 
-        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            //Reorder credentials
-            //Если мы не попадаем в это событие, значит приложение завершилось некорректно и делать перестановку не нужно
-
-        }
-
         #endregion
 
         #region Methods
@@ -79,12 +75,12 @@ namespace GisAutoWinFormTest
             try
             {
                 //Make sure that credentials are correct
-                if (Properties.Settings.Default.CredentialsArray.Count < 1)
+                if (AppSettings.Default.CredentialsArray.Count < 1)
                 {
                     return false;
                 }
 
-                logPass = Properties.Settings.Default.CredentialsArray[0];
+                logPass = AppSettings.Default.CredentialsArray[0];
                 var settings = logPass.Split(';');
                 if (settings.Length < 2)
                 {
@@ -113,13 +109,13 @@ namespace GisAutoWinFormTest
 
             try
             {
-                if (!string.IsNullOrWhiteSpace(logPass) && Properties.Settings.Default.CredentialsArray.Count > 1)
+                if (!string.IsNullOrWhiteSpace(logPass) && AppSettings.Default.CredentialsArray.Count > 1)
                 {
                     //После каждого успешного логина сменить очередность
-                    //Не имеет смысла если credentials одни
-                    Properties.Settings.Default.CredentialsArray.RemoveAt(0);
-                    Properties.Settings.Default.CredentialsArray.Add(logPass);
-                    Properties.Settings.Default.Save();
+                    //Не имеет смысла если credentials в единственном экземпляре
+                    AppSettings.Default.CredentialsArray.RemoveAt(0);
+                    AppSettings.Default.CredentialsArray.Add(logPass);
+                    AppSettings.Default.Save();
                 }
             }
             catch (Exception)
